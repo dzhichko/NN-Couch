@@ -1,0 +1,32 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: chat_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_DATABASE: chat_db
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+    container_name: chat_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./BackEnd:/app/backend
+    environment:
+      MONGODB_URL: mongodb://admin:secret@mongodb:27017
+      DB_NAME: chat_db
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
