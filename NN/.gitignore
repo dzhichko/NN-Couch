@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Model output (large files)
+output/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Generated dataset (regenerate with script)
+dataset/coaching_llm_generated.json
+dataset/generation_progress.json
+
+# API keys & secrets
+.env
+*.env
+secrets.json
+
+# Debug logs
+*.log
+
+# HuggingFace cache
+.cache/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
