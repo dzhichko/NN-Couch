@@ -14,7 +14,6 @@ output/
 *.pth
 
 # Generated dataset (regenerate with script)
-dataset/coaching_llm_generated.json
 dataset/generation_progress.json
 
 # API keys & secrets

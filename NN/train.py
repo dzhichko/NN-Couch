@@ -1,23 +1,15 @@
-"""
-QLoRA fine-tuning of DeepSeek-R1-Distill-Qwen-1.5B for coaching.
 
-Usage:
-    python train.py
-"""
-
+import os
 import torch
 import json
 import time
 import inspect
 import uuid
 from pathlib import Path
+
 from datasets import load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-)
-import transformers 
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+import transformers
 import trl
 from peft import LoraConfig, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
@@ -49,6 +41,13 @@ from config import (
     OPTIM,
 )
 
+# Helps on Windows / tokenizer threads
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# If your tokenizer/chat template supports assistant masks, keep True.
+# If training errors about generation tags/masks appear, switch to False.
+ASSISTANT_ONLY_LOSS = False
+
 
 def get_compute_dtype(dtype_str: str) -> torch.dtype:
     if dtype_str == "bfloat16":
@@ -78,7 +77,7 @@ def main():
     print("=" * 60)
     print("  DeepSeek-R1 Coaching Fine-Tuning (QLoRA)")
     print("=" * 60)
-    # region agent log
+
     debug_log(
         run_id,
         "H_ENV_VERSIONS",
@@ -90,7 +89,6 @@ def main():
             "trl_version": trl.__version__,
         },
     )
-    # endregion
 
     compute_dtype = get_compute_dtype(BNB_4BIT_COMPUTE_DTYPE)
 
@@ -134,6 +132,11 @@ def main():
     # --- Dataset ---
     print(f"\nLoading dataset: {DATASET_PATH}")
     dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
+
+    if "messages" not in dataset.column_names:
+        raise ValueError("Dataset must contain a 'messages' column with conversational samples.")
+
+    # Do not inject <think> blocks. Let the model learn the chat format directly.
     print(f"Dataset size: {len(dataset)} examples")
 
     # --- Training arguments ---
@@ -159,12 +162,13 @@ def main():
         max_length=MAX_SEQ_LENGTH,
         dataloader_num_workers=0,
         dataloader_pin_memory=False,
+        assistant_only_loss=ASSISTANT_ONLY_LOSS,
+        dataset_num_proc=1,
     )
 
     # --- Trainer ---
     print("\nInitializing SFTTrainer...")
     sft_signature = str(inspect.signature(SFTTrainer.__init__))
-    # region agent log
     debug_log(
         run_id,
         "H_SFT_SIGNATURE",
@@ -172,15 +176,15 @@ def main():
         "SFTTrainer init signature",
         {"signature": sft_signature},
     )
-    # endregion
+
     trainer_kwargs = {
         "model": model,
         "train_dataset": dataset,
         "peft_config": peft_config,
         "processing_class": tokenizer,
-        "args": training_args
+        "args": training_args,
     }
-    # region agent log
+
     debug_log(
         run_id,
         "H_UNEXPECTED_KWARG",
@@ -192,11 +196,10 @@ def main():
             "max_seq_length_value": MAX_SEQ_LENGTH,
         },
     )
-    # endregion
+
     try:
         trainer = SFTTrainer(**trainer_kwargs)
     except Exception as exc:
-        # region agent log
         debug_log(
             run_id,
             "H_INIT_EXCEPTION",
@@ -207,19 +210,22 @@ def main():
                 "exception_text": str(exc),
             },
         )
-        # endregion
         raise
 
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Trainable parameters: {trainable_params:,} / {total_params:,} "
-          f"({100 * trainable_params / total_params:.2f}%)")
+    print(
+        f"Trainable parameters: {trainable_params:,} / {total_params:,} "
+        f"({100 * trainable_params / total_params:.2f}%)"
+    )
 
     # --- Train ---
     print("\nStarting training...")
     print(f"  Epochs: {NUM_EPOCHS}")
-    print(f"  Batch size: {PER_DEVICE_BATCH_SIZE} x {GRADIENT_ACCUMULATION_STEPS} = "
-          f"{PER_DEVICE_BATCH_SIZE * GRADIENT_ACCUMULATION_STEPS}")
+    print(
+        f"  Batch size: {PER_DEVICE_BATCH_SIZE} x {GRADIENT_ACCUMULATION_STEPS} = "
+        f"{PER_DEVICE_BATCH_SIZE * GRADIENT_ACCUMULATION_STEPS}"
+    )
     print(f"  Learning rate: {LEARNING_RATE}")
     print(f"  Max sequence length: {MAX_SEQ_LENGTH}")
     print()
@@ -234,7 +240,7 @@ def main():
 
     print("\nTraining complete!")
     print(f"LoRA adapter saved to: {final_path}")
-    print(f"Run 'python inference.py' to test the model.")
+    print("Run 'python inference.py' to test the model.")
 
 
 if __name__ == "__main__":
