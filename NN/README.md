@@ -1,6 +1,6 @@
-# NN-Couch — Нейрокоуч на базе DeepSeek-R1
+# NN-Couch — Нейрокоуч на базе Qwen
 
-Файн-тюнинг модели **DeepSeek-R1-Distill-Qwen-1.5B** под задачу лайф-коучинга с использованием **QLoRA** (4-bit квантизация + LoRA адаптеры).
+Файн-тюнинг модели **Qwen/Qwen2.5-7B-Instruct** под задачу лайф-коучинга с использованием **QLoRA** (4-bit квантизация + LoRA адаптеры).
 
 ---
 
@@ -77,7 +77,7 @@ NUM_DIALOGUES = 500
 
 ```python
 # Модель
-MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 
 # LoRA
 LORA_R = 8              # Ранг адаптера (меньше = меньше переобучение)
@@ -100,11 +100,11 @@ python train.py
 Ожидаемый вывод:
 ```
 ============================================================
-  DeepSeek-R1 Coaching Fine-Tuning (QLoRA)
+  DQwen/Qwen2.5-7B-Instruct
 ============================================================
 
-Loading tokenizer: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
-Loading model: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B (4-bit)
+Loading tokenizer: Qwen/Qwen2.5-7B-Instruct
+Loading model: Qwen/Qwen2.5-7B-Instruct (4-bit)
 Model loaded. Parameters: 1,781,590,016
 Dataset size: 521 examples
 Initializing SFTTrainer...
@@ -119,7 +119,7 @@ Starting training...
   0%|          | 0/128 [00:00<?, ?it/s]
 ```
 
-**Первый запуск:** модель (~3 GB) скачается автоматически с HuggingFace.
+**Первый запуск:** модель (~6 GB) скачается автоматически с HuggingFace.
 
 **Время обучения модели** Более часа, с новой генерацией диалогов будет больше. Еще не тестил
 
