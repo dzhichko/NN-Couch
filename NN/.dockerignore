@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.claude/
+dataset/
+train.py
+debug-*.log
+output/checkpoint-*
+*.log

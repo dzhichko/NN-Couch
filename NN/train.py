@@ -41,11 +41,8 @@ from config import (
     OPTIM,
 )
 
-# Helps on Windows / tokenizer threads
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# If your tokenizer/chat template supports assistant masks, keep True.
-# If training errors about generation tags/masks appear, switch to False.
 ASSISTANT_ONLY_LOSS = False
 
 

@@ -24,6 +24,7 @@ services:
     environment:
       MONGODB_URL: mongodb://admin:secret@mongodb:27017
       DB_NAME: chat_db
+      NN_SERVICE_URL: http://host.docker.internal:8001
     depends_on:
       - mongodb
     restart: unless-stopped

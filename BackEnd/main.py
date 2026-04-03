@@ -1,22 +1,31 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routes import router
 from database import MongoDB
 
-app = FastAPI(title="Chat Backend", version="1.0.0")
+app = FastAPI(title="NN-Couch Backend", version="1.0.0")
 
-# Подключаем роутер
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(router)
 
-# События при старте и остановке приложения
+
 @app.on_event("startup")
 async def startup():
     await MongoDB.connect()
+
 
 @app.on_event("shutdown")
 async def shutdown():
     await MongoDB.close()
 
-# Корневой эндпоинт (опционально)
+
 @app.get("/")
 async def root():
-    return {"message": "Chat Backend is running"}
+    return {"message": "NN-Couch Backend is running"}
