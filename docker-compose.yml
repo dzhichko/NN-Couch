@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongodb:
     image: mongo:latest
@@ -7,26 +9,27 @@ services:
     volumes:
       - mongodb_data:/data/db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: secret
+      # MONGO_INITDB_ROOT_USERNAME: admin
+      # MONGO_INITDB_ROOT_PASSWORD: secret
       MONGO_INITDB_DATABASE: chat_db
     restart: unless-stopped
 
-  backend:
+  llm-service:
     build:
-      context: ./BackEnd
+      context: ./NN
       dockerfile: Dockerfile
-    container_name: chat_backend
+    container_name: chat_llm
     ports:
-      - "8000:8000"
-    volumes:
-      - ./BackEnd:/app/backend
+      - "8001:8001"
     environment:
-      MONGODB_URL: mongodb://admin:secret@mongodb:27017
-      DB_NAME: chat_db
-      NN_SERVICE_URL: http://host.docker.internal:8001
-    depends_on:
-      - mongodb
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     restart: unless-stopped
 
 volumes:

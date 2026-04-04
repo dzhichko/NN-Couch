@@ -6,7 +6,7 @@ class Settings:
     # Формат: mongodb://username:password@localhost:27017/dbname?authSource=admin
     MONGODB_URL: str = os.getenv(
         "MONGODB_URL",
-        "mongodb://admin:secret@localhost:27017/chat_db?authSource=admin"
+        "mongodb://localhost:27017"
     )
     DB_NAME: str = os.getenv("DB_NAME", "chat_db")
     NN_SERVICE_URL: str = os.getenv("NN_SERVICE_URL", "http://localhost:8001")
