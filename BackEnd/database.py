@@ -19,6 +19,11 @@ class MongoDB:
             cls.client.close()
             print("MongoDB connection closed")
 
+    @classmethod
+    def get_database(cls):
+        """Возвращает объект базы данных"""
+        return cls.db
+
 # Вспомогательная функция для получения коллекции
 def get_collection(name: str):
     return MongoDB.db[name]
